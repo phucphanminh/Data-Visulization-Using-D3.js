@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function drawLifestyleInfluence(data, isSortByCount = false) {
     const width = 900;
-    const height = 500;
+    const height = 520;
     const margin = { top: 50, right: 50, bottom: 120, left: 80 };
 
     const svg = d3
