@@ -2,11 +2,121 @@ document.addEventListener("DOMContentLoaded", function () {
   d3.csv("project_heart_disease.csv").then(function (data) {
     console.log("Data loaded", data);
 
+    // Data cleaning
+    let ages = data.map((d) => +d.Age).filter((d) => !isNaN(d));
+    let bloodPressures = data
+      .map((d) => +d["Blood Pressure"])
+      .filter((d) => !isNaN(d));
+    let cholesterols = data
+      .map((d) => +d["Cholesterol Level"])
+      .filter((d) => !isNaN(d));
+    let bmis = data.map((d) => +d["BMI"]).filter((d) => !isNaN(d));
+
+    let median = (arr) => {
+      arr.sort((a, b) => a - b);
+      let mid = Math.floor(arr.length / 2);
+      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    };
+
+    let mode = (arr) => {
+      let freq = {};
+      arr.forEach((val) => (freq[val] = (freq[val] || 0) + 1));
+      return Object.keys(freq).reduce((a, b) => (freq[a] > freq[b] ? a : b));
+    };
+
+    data.forEach((d) => {
+      d.Age = d.Age ? +d.Age : median(ages);
+      d.Smoking = d.Smoking || mode(data.map((d) => d.Smoking).filter(Boolean));
+      d["Exercise Habits"] =
+        d["Exercise Habits"] ||
+        mode(data.map((d) => d["Exercise Habits"]).filter(Boolean));
+      d["Alcohol Consumption"] =
+        d["Alcohol Consumption"] && d["Alcohol Consumption"].trim() !== ""
+          ? d["Alcohol Consumption"]
+          : "Unknown";
+      d.Gender = d.Gender || mode(data.map((d) => d.Gender).filter(Boolean));
+      d["Family Heart Disease"] =
+        d["Family Heart Disease"] ||
+        mode(data.map((d) => d["Family Heart Disease"]).filter(Boolean));
+      d["Stress Level"] =
+        d["Stress Level"] ||
+        mode(data.map((d) => d["Stress Level"]).filter(Boolean));
+      d["Blood Pressure"] = d["Blood Pressure"]
+        ? +d["Blood Pressure"]
+        : median(bloodPressures);
+      d["Cholesterol Level"] = d["Cholesterol Level"]
+        ? +d["Cholesterol Level"]
+        : median(cholesterols);
+      d.BMI = d.BMI ? +d.BMI : median(bmis);
+    });
+
+    console.log("Cleaned Data", data);
+
+    // Thêm button sắp xếp và reset
+    // d3.select("body")
+    //   .append("button")
+    //   .text("Sort by Count")
+    //   .on("click", function () {
+    //     resetBody();
+    //     drawAgeDistribution(data, true);
+    //     drawSmokingImpact(data, true);
+    //     drawExerciseImpact(data, true);
+    //     drawLifestyleInfluence(data, true);
+    //   });
+
+    // d3.select("body")
+    //   .append("button")
+    //   .text("Reset Order")
+    //   .on("click", function () {
+    //     resetBody();
+    //     drawAgeDistribution(data);
+    //     drawSmokingImpact(data);
+    //     drawExerciseImpact(data);
+    //     drawLifestyleInfluence(data);
+    //   });
+
+    document
+      .getElementById("sort-button")
+      .addEventListener("click", function () {
+        resetCharts();
+        drawAgeDistribution(data, true);
+        drawSmokingImpact(data, true);
+        drawExerciseImpact(data, true);
+        drawLifestyleInfluence(data, true);
+      });
+
+    document
+      .getElementById("reset-button")
+      .addEventListener("click", function () {
+        resetCharts();
+        drawAgeDistribution(data);
+        drawSmokingImpact(data);
+        drawExerciseImpact(data);
+        drawLifestyleInfluence(data);
+      });
+
     drawAgeDistribution(data);
     drawSmokingImpact(data);
     drawExerciseImpact(data);
     drawLifestyleInfluence(data);
   });
+
+  function resetCharts() {
+    document.getElementById("charts").innerHTML = `
+      <div id="age-distribution">
+          <h2>Age Distribution</h2>
+      </div>
+      <div id="smoking-impact">
+          <h2>Smoking Impact</h2>
+      </div>
+      <div id="exercise-impact">
+          <h2>Exercise Impact</h2>
+      </div>
+      <div id="lifestyle-influence">
+          <h2>Lifestyle Influence</h2>
+      </div>
+    `;
+  }
 
   function drawAxisLabels(svg, width, height, xLabel, yLabel) {
     svg
@@ -27,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .text(yLabel);
   }
 
-  function drawAgeDistribution(data) {
+  function drawAgeDistribution(data, isSortByCount = false) {
     const width = 700,
       height = 400;
     const margin = { top: 50, right: 50, bottom: 80, left: 60 };
@@ -45,10 +155,15 @@ document.addEventListener("DOMContentLoaded", function () {
       (v) => v.length,
       (d) => Math.floor(+d.Age / 10) * 10
     );
-    const counts = Array.from(ageGroups, ([age, count]) => ({
+
+    let counts = Array.from(ageGroups, ([age, count]) => ({
       age,
       count,
     })).sort((a, b) => a.age - b.age);
+
+    if (isSortByCount) {
+      counts = counts.sort((a, b) => a.count - b.count);
+    }
 
     const x = d3
       .scaleBand()
@@ -93,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
     drawAxisLabels(svg, width, height, "Age Groups", "Number of People");
   }
 
-  function drawSmokingImpact(data) {
+  function drawSmokingImpact(data, isSortByCount = false) {
     const width = 700,
       height = 400;
     const margin = { top: 50, right: 50, bottom: 80, left: 60 };
@@ -111,10 +226,14 @@ document.addEventListener("DOMContentLoaded", function () {
       (v) => v.length,
       (d) => d.Smoking || "Undefined"
     );
-    const counts = Array.from(smokingGroups, ([smoking, count]) => ({
+    let counts = Array.from(smokingGroups, ([smoking, count]) => ({
       smoking,
       count,
     }));
+
+    if (isSortByCount) {
+      counts = counts.sort((a, b) => a.count - b.count);
+    }
 
     const x = d3
       .scaleBand()
@@ -159,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
     drawAxisLabels(svg, width, height, "Smoking Status", "Number of People");
   }
 
-  function drawExerciseImpact(data) {
+  function drawExerciseImpact(data, isSortByCount = false) {
     const width = 700,
       height = 400;
     const margin = { top: 50, right: 50, bottom: 80, left: 60 };
@@ -177,10 +296,14 @@ document.addEventListener("DOMContentLoaded", function () {
       (v) => v.length,
       (d) => (d["Exercise Habits"] || "Undefined").trim()
     );
-    const counts = Array.from(exerciseGroups, ([exercise, count]) => ({
+    let counts = Array.from(exerciseGroups, ([exercise, count]) => ({
       exercise,
       count,
     }));
+
+    if (isSortByCount) {
+      counts = counts.sort((a, b) => a.count - b.count);
+    }
 
     const x = d3
       .scaleBand()
@@ -225,9 +348,9 @@ document.addEventListener("DOMContentLoaded", function () {
     drawAxisLabels(svg, width, height, "Exercise Habits", "Number of People");
   }
 
-  function drawLifestyleInfluence(data) {
+  function drawLifestyleInfluence(data, isSortByCount = false) {
     const width = 900;
-    const height = 500;
+    const height = 520;
     const margin = { top: 50, right: 50, bottom: 120, left: 80 };
 
     const svg = d3
@@ -244,10 +367,11 @@ document.addEventListener("DOMContentLoaded", function () {
       (d) => {
         const smoking =
           d.Smoking === "Yes" || d.Smoking === "No" ? d.Smoking : "Undefined";
-        const alcohol = ["None", "Low", "Medium", "High"].includes(
-          d.AlcoholConsumption
+        //const alcohol = ["None", "Low", "Medium", "High"].includes(
+        const alcohol = ["Unknown", "Low", "Medium", "High"].includes(
+          (d["Alcohol Consumption"] || "").trim()
         )
-          ? d.AlcoholConsumption
+          ? d["Alcohol Consumption"].trim()
           : "Undefined";
         const exercise = ["Low", "Medium", "High"].includes(
           (d["Exercise Habits"] || "").trim()
@@ -258,10 +382,14 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     );
 
-    const counts = Array.from(lifestyleGroups, ([lifestyle, count]) => ({
+    let counts = Array.from(lifestyleGroups, ([lifestyle, count]) => ({
       lifestyle,
       count,
     }));
+
+    if (isSortByCount) {
+      counts = counts.sort((a, b) => a.count - b.count);
+    }
 
     const x = d3
       .scaleBand()
