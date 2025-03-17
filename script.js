@@ -2,6 +2,10 @@ document.addEventListener("DOMContentLoaded", function () {
   d3.csv("project_heart_disease.csv").then(function (data) {
     console.log("Data loaded", data);
 
+    // Filter data to include only rows where “Heart Disease Status” = “yes”
+    data = data.filter(d => d["Heart Disease Status"] == "Yes");
+    console.log("Filtered Data", data);
+
     // Data cleaning
     let ages = data.map((d) => +d.Age).filter((d) => !isNaN(d));
     let bloodPressures = data
