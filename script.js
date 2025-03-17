@@ -7,54 +7,54 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Filtered Data", data);
 
     // Data cleaning
-    let ages = data.map((d) => +d.Age).filter((d) => !isNaN(d));
-    let bloodPressures = data
-      .map((d) => +d["Blood Pressure"])
-      .filter((d) => !isNaN(d));
-    let cholesterols = data
-      .map((d) => +d["Cholesterol Level"])
-      .filter((d) => !isNaN(d));
-    let bmis = data.map((d) => +d["BMI"]).filter((d) => !isNaN(d));
+    // let ages = data.map((d) => +d.Age).filter((d) => !isNaN(d));
+    // let bloodPressures = data
+    //   .map((d) => +d["Blood Pressure"])
+    //   .filter((d) => !isNaN(d));
+    // let cholesterols = data
+    //   .map((d) => +d["Cholesterol Level"])
+    //   .filter((d) => !isNaN(d));
+    // let bmis = data.map((d) => +d["BMI"]).filter((d) => !isNaN(d));
 
-    let median = (arr) => {
-      arr.sort((a, b) => a - b);
-      let mid = Math.floor(arr.length / 2);
-      return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
-    };
+    // let median = (arr) => {
+    //   arr.sort((a, b) => a - b);
+    //   let mid = Math.floor(arr.length / 2);
+    //   return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+    // };
 
-    let mode = (arr) => {
-      let freq = {};
-      arr.forEach((val) => (freq[val] = (freq[val] || 0) + 1));
-      return Object.keys(freq).reduce((a, b) => (freq[a] > freq[b] ? a : b));
-    };
+    // let mode = (arr) => {
+    //   let freq = {};
+    //   arr.forEach((val) => (freq[val] = (freq[val] || 0) + 1));
+    //   return Object.keys(freq).reduce((a, b) => (freq[a] > freq[b] ? a : b));
+    // };
 
-    data.forEach((d) => {
-      d.Age = d.Age ? +d.Age : median(ages);
-      d.Smoking = d.Smoking || mode(data.map((d) => d.Smoking).filter(Boolean));
-      d["Exercise Habits"] =
-        d["Exercise Habits"] ||
-        mode(data.map((d) => d["Exercise Habits"]).filter(Boolean));
-      d["Alcohol Consumption"] =
-        d["Alcohol Consumption"] && d["Alcohol Consumption"].trim() !== ""
-          ? d["Alcohol Consumption"]
-          : "Unknown";
-      d.Gender = d.Gender || mode(data.map((d) => d.Gender).filter(Boolean));
-      d["Family Heart Disease"] =
-        d["Family Heart Disease"] ||
-        mode(data.map((d) => d["Family Heart Disease"]).filter(Boolean));
-      d["Stress Level"] =
-        d["Stress Level"] ||
-        mode(data.map((d) => d["Stress Level"]).filter(Boolean));
-      d["Blood Pressure"] = d["Blood Pressure"]
-        ? +d["Blood Pressure"]
-        : median(bloodPressures);
-      d["Cholesterol Level"] = d["Cholesterol Level"]
-        ? +d["Cholesterol Level"]
-        : median(cholesterols);
-      d.BMI = d.BMI ? +d.BMI : median(bmis);
-    });
+    // data.forEach((d) => {
+    //   d.Age = d.Age ? +d.Age : median(ages);
+    //   d.Smoking = d.Smoking || mode(data.map((d) => d.Smoking).filter(Boolean));
+    //   d["Exercise Habits"] =
+    //     d["Exercise Habits"] ||
+    //     mode(data.map((d) => d["Exercise Habits"]).filter(Boolean));
+    //   d["Alcohol Consumption"] =
+    //     d["Alcohol Consumption"] && d["Alcohol Consumption"].trim() !== ""
+    //       ? d["Alcohol Consumption"]
+    //       : "Unknown";
+    //   d.Gender = d.Gender || mode(data.map((d) => d.Gender).filter(Boolean));
+    //   d["Family Heart Disease"] =
+    //     d["Family Heart Disease"] ||
+    //     mode(data.map((d) => d["Family Heart Disease"]).filter(Boolean));
+    //   d["Stress Level"] =
+    //     d["Stress Level"] ||
+    //     mode(data.map((d) => d["Stress Level"]).filter(Boolean));
+    //   d["Blood Pressure"] = d["Blood Pressure"]
+    //     ? +d["Blood Pressure"]
+    //     : median(bloodPressures);
+    //   d["Cholesterol Level"] = d["Cholesterol Level"]
+    //     ? +d["Cholesterol Level"]
+    //     : median(cholesterols);
+    //   d.BMI = d.BMI ? +d.BMI : median(bmis);
+    // });
 
-    console.log("Cleaned Data", data);
+    // console.log("Cleaned Data", data);
 
     // Thêm button sắp xếp và reset
     // d3.select("body")
@@ -157,13 +157,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const ageGroups = d3.rollup(
       data,
       (v) => v.length,
-      (d) => Math.floor(+d.Age / 10) * 10
+      (d) => Math.floor(+d.Age / 10) * 10 || "Undefined"
     );
 
     let counts = Array.from(ageGroups, ([age, count]) => ({
       age,
       count,
-    })).sort((a, b) => a.age - b.age);
+    })).sort((a, b) => a.age.toString().localeCompare(b.age.toString()));
 
     if (isSortByCount) {
       counts = counts.sort((a, b) => a.count - b.count);
@@ -300,10 +300,15 @@ document.addEventListener("DOMContentLoaded", function () {
       (v) => v.length,
       (d) => (d["Exercise Habits"] || "Undefined").trim()
     );
+
+    const customOrder = ["High", "Medium", "Low", "Undefined"];
+    
     let counts = Array.from(exerciseGroups, ([exercise, count]) => ({
       exercise,
       count,
-    }));
+    })).sort((a, b) => {
+      return customOrder.indexOf(a.exercise) - customOrder.indexOf(b.exercise);
+    });
 
     if (isSortByCount) {
       counts = counts.sort((a, b) => a.count - b.count);
