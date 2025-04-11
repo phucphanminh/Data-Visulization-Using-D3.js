@@ -41,7 +41,7 @@ rect:hover {
 }
 
 #lifestyle-influence {
-    width: 1500px;  /* Tăng chiều rộng div chứa biểu đồ */
+    width: 1000px;  /* Tăng chiều rộng div chứa biểu đồ */
     overflow-x: auto; /* Cho phép cuộn ngang nếu cần */
 }
 
