@@ -1241,6 +1241,8 @@ document.addEventListener("DOMContentLoaded", function () {
         d["Alcohol Consumption"] &&
         d["Exercise Habits"]
     );
+
+    //const clean = data;
   
     clean.forEach((d) => {
       d["AgeGroup"] = groupAge(d["Age"]);
